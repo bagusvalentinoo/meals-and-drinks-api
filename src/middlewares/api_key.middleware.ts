@@ -14,21 +14,24 @@ export const apiKeyMiddleware = async (
   _res: Response,
   next: NextFunction
 ) => {
-  const apiKey = req.get('x-api-key')
+  try {
+    const apiKey = req.get('x-api-key')
 
-  if (!apiKey)
-    throw new FormattedResponseError(
-      401,
-      'Oops, you need to provide an API key!'
-    )
+    if (!apiKey)
+      return next(
+        new FormattedResponseError(401, 'Oops, you need to provide an API key!')
+      )
 
-  const isApiKeyExist = await prisma.apiKey.findFirst({
-    where: { key: apiKey, status: 'ACTIVE' },
-    select: { id: true }
-  })
+    const isApiKeyExist = await prisma.apiKey.findFirst({
+      where: { key: apiKey, status: 'ACTIVE' },
+      select: { id: true }
+    })
 
-  if (!isApiKeyExist)
-    throw new FormattedResponseError(401, 'Oops, invalid API key!')
+    if (!isApiKeyExist)
+      return next(new FormattedResponseError(401, 'Oops, invalid API key!'))
 
-  next()
+    next()
+  } catch (error) {
+    next(error)
+  }
 }

@@ -16,28 +16,33 @@ export const authMiddleware = async (
   _res: Response,
   next: NextFunction
 ) => {
-  const bearerToken = req.get('Authorization')
-  const errorMessage = 'Oops, your not authorized to access this resource'
+  try {
+    const bearerToken = req.get('Authorization')
+    const errorMessage = 'Oops, your not authorized to access this resource'
 
-  if (!bearerToken) throw new FormattedResponseError(401, errorMessage)
+    if (!bearerToken) return next(new FormattedResponseError(401, errorMessage))
 
-  const [bearer, token] = bearerToken.split(' ')
+    const [bearer, token] = bearerToken.split(' ')
 
-  if (bearer !== 'Bearer' || !token)
-    throw new FormattedResponseError(401, errorMessage)
+    if (bearer !== 'Bearer' || !token)
+      return next(new FormattedResponseError(401, errorMessage))
 
-  const decoded = jwt.verify(
-    token,
-    process.env.JWT_ACCESS_SECRET as string
-  ) as { id: string }
-  req.user_id = decoded.id
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_ACCESS_SECRET as string
+    ) as { id: string }
+    req.user_id = decoded.id
 
-  const isValidToken = await prisma.userToken.findFirst({
-    where: { user_id: req.user_id, token },
-    select: { id: true }
-  })
+    const isValidToken = await prisma.userToken.findFirst({
+      where: { user_id: req.user_id, token },
+      select: { id: true }
+    })
 
-  if (!isValidToken) throw new FormattedResponseError(401, errorMessage)
+    if (!isValidToken)
+      return next(new FormattedResponseError(401, errorMessage))
 
-  next()
+    next()
+  } catch (error) {
+    next(error)
+  }
 }
