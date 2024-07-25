@@ -11,27 +11,32 @@ import { FormattedResponseError } from '@utils/error/formatted_response_error.ut
 export const checkUserRole =
   (role: string) =>
   async (req: UserRequest, _res: Response, next: NextFunction) => {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user_id },
-      include: {
-        roles: {
-          include: {
-            role: { select: { name: true } }
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: req.user_id },
+        include: {
+          roles: {
+            include: {
+              role: { select: { name: true } }
+            }
           }
         }
-      }
-    })
+      })
 
-    const errorMessage = 'Oops, you are not authorized to access this resource'
+      const errorMessage =
+        'Oops, you are not authorized to access this resource'
 
-    if (!user) throw new FormattedResponseError(401, errorMessage)
+      if (!user) return next(new FormattedResponseError(401, errorMessage))
 
-    const roles = user.roles.map((role) => role.role.name)
-    const hasRole = roles.some((r) => r === role)
+      const roles = user.roles.map((role) => role.role.name)
+      const hasRole = roles.some((r) => r === role)
 
-    if (!hasRole) throw new FormattedResponseError(401, errorMessage)
+      if (!hasRole) return next(new FormattedResponseError(401, errorMessage))
 
-    next()
+      next()
+    } catch (error) {
+      next(error)
+    }
   }
 
 export const adminMiddleware = checkUserRole('ADMIN')

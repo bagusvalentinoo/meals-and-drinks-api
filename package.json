@@ -5,11 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "SET NODE_ENV=production && node dist/index.js",
-    "dev": "nodemon",
+    "dev": "dotenv -e .env.development -- nodemon",
     "build": "tsc && tsc-alias",
-    "test": "dotenv -e .env.test.local -- jest",
-    "test:watch": "dotenv -e .env.test.local -- jest --watchAll",
-    "test:coverage": "dotenv -e .env.test.local -- jest --coverage",
+    "test": "dotenv -e .env.test -- jest",
+    "test:watch": "dotenv -e .env.test -- jest --watchAll",
+    "test:coverage": "dotenv -e .env.test -- jest --coverage",
     "format": "prettier --write .",
     "prisma:studio:test": "dotenv -e .env.test -- pnpx prisma studio",
     "prisma:studio:dev": "dotenv -e .env.development -- pnpx prisma studio",
@@ -17,15 +17,24 @@
     "prisma:migrate:test": "dotenv -e .env.test -- pnpx prisma db push",
     "prisma:migrate:dev": "dotenv -e .env.development -- pnpx prisma db push",
     "prisma:migrate:prod": "dotenv -e .env.production -- pnpx prisma db push",
+    "prisma:migrate:seed:test": "dotenv -e .env.test -- pnpx prisma db push && dotenv -e .env.test -- pnpx prisma db seed",
+    "prisma:migrate:seed:dev": "dotenv -e .env.development -- pnpx prisma db push && dotenv -e .env.development -- pnpx prisma db seed",
+    "prisma:migrate:seed:prod": "dotenv -e .env.production -- pnpx prisma db push && dotenv -e .env.production -- pnpx prisma db seed",
+    "prisma:migrate:rollback:test": "dotenv -e .env.test -- pnpx prisma migrate reset --force --skip-seed",
+    "prisma:migrate:rollback:dev": "dotenv -e .env.development -- pnpx prisma migrate reset --force --skip-seed",
+    "prisma:migrate:rollback:prod": "dotenv -e .env.production -- pnpx prisma migrate reset --force --skip-seed",
     "prisma:seed:test": "dotenv -e .env.test -- pnpx prisma db seed",
     "prisma:seed:dev": "dotenv -e .env.development -- pnpx prisma db seed",
     "prisma:seed:prod": "dotenv -e .env.production -- pnpx prisma db seed",
-    "prisma:reset:test": "dotenv -e .env.test -- pnpx prisma migrate reset --force --skip-seed",
-    "prisma:reset:dev": "dotenv -e .env.development -- pnpx prisma migrate reset --force --skip-seed",
-    "prisma:reset:prod": "dotenv -e .env.production -- pnpx prisma migrate reset --force --skip-seed"
+    "prisma:migrate:fresh:test": "dotenv -e .env.test -- pnpx prisma migrate reset --force --skip-seed && dotenv -e .env.test -- pnpx prisma db push",
+    "prisma:migrate:fresh:dev": "dotenv -e .env.development -- pnpx prisma migrate reset --force --skip-seed && dotenv -e .env.development -- pnpx prisma db push",
+    "prisma:migrate:fresh:prod": "dotenv -e .env.production -- pnpx prisma migrate reset --force --skip-seed && dotenv -e .env.production -- pnpx prisma db push",
+    "prisma:migrate:fresh:seed:test": "dotenv -e .env.test -- pnpx prisma migrate reset --force --skip-seed && dotenv -e .env.test -- pnpx prisma db push && dotenv -e .env.test -- pnpx prisma db seed",
+    "prisma:migrate:fresh:seed:dev": "dotenv -e .env.development -- pnpx prisma migrate reset --force --skip-seed && dotenv -e .env.development -- pnpx prisma db push && dotenv -e .env.development -- pnpx prisma db seed",
+    "prisma:migrate:fresh:seed:prod": "dotenv -e .env.production -- pnpx prisma migrate reset --force --skip-seed && dotenv -e .env.production -- pnpx prisma db push && dotenv -e .env.production -- pnpx prisma db seed"
   },
   "prisma": {
-    "seed": "ts-node ./prisma/seed.ts"
+    "seed": "ts-node -r tsconfig-paths/register ./prisma/seed.ts"
   },
   "husky": {
     "hooks": {

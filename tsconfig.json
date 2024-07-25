@@ -3,12 +3,13 @@
     "target": "ES2023",
     "lib": ["ES2023", "DOM"],
     "module": "CommonJS",
-    "rootDir": "./src",
     "moduleResolution": "node",
     "baseUrl": "./",
     "paths": {
       "~/*": ["*"],
+      "@seeders/*": ["./prisma/seeders/*"],
       "@src/*": ["./src/*"],
+      "@test/*": ["./test/*"],
       "@app/*": ["./src/app/*"],
       "@controllers/*": ["./src/controllers/api/*"],
       "@middlewares/*": ["./src/middlewares/*"],
@@ -39,7 +40,7 @@
     "outDir": "./dist",
     "removeComments": true
   },
-  "include": ["src/**/*"],
+  "include": ["docs/**/*", "prisma/**/*", "src/**/*", "test/**/*"],
   "exclude": [
     "coverage",
     "dist",
