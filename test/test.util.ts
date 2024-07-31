@@ -161,11 +161,11 @@ export class AuthTest {
   }
 
   /**
-   * Clean up relationship data to avoid constraint error
+   * Clean up data user auth and associated user auth data
    *
    * @returns {Promise<void>}
    */
-  static async cleanUpData(): Promise<void> {
+  static async cleanUpDataUserAuthAndAssociatedAssociatedUserAuthData(): Promise<void> {
     const emails = [
       'user_role_admin_test@example.com',
       'user_role_user_test@example.com',

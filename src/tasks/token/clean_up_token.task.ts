@@ -1,6 +1,11 @@
 import { prisma } from '@app/prisma'
 
-export const cleanUpExpiredToken = async () => {
+/**
+ * Clean up expired token
+ *
+ * @returns {Promise<void>}
+ */
+export const cleanUpExpiredToken = async (): Promise<void> => {
   try {
     const [deletedRows] = await prisma.$transaction([
       prisma.userToken.deleteMany({
