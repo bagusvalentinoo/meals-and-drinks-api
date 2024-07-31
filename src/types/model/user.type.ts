@@ -2,6 +2,12 @@ import type { User } from '@prisma/client'
 import type { RoleResponse } from '@type/model/role.type'
 import type { TokenResponse } from '@type/model/token.type'
 
+export type UserCreatorOrUpdater = {
+  id: string
+  name: string
+  photo_profile_url: string | null
+}
+
 export type UserIncludeRoles = {
   roles: ({
     role: {

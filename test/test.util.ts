@@ -9,7 +9,7 @@ export class AuthTest {
    * @param {string} name - Role name
    * @returns {Promise<{ id: string }>} - Role id
    */
-  private static async upsertRole(name: string): Promise<{ id: string }> {
+  static async upsertRole(name: string): Promise<{ id: string }> {
     const [role] = await prisma.$transaction([
       prisma.role.upsert({
         where: { name },
@@ -30,7 +30,7 @@ export class AuthTest {
    * @param {string} roleId - Role id
    * @returns {Promise<{ id: string }>} - User id
    */
-  private static async upsertUser(
+  static async upsertUser(
     email: string,
     name: string,
     password: string,
@@ -161,11 +161,11 @@ export class AuthTest {
   }
 
   /**
-   * Clean up relationship data to avoid constraint error
+   * Clean up data to avoid constraint error
    *
    * @returns {Promise<void>}
    */
-  static async cleanUpData(): Promise<void> {
+  static async cleanUpDataAuthAndAssociatedAuthData(): Promise<void> {
     const emails = [
       'user_role_admin_test@example.com',
       'user_role_user_test@example.com',
@@ -187,6 +187,94 @@ export class AuthTest {
       }),
       prisma.user.deleteMany({
         where: { email: { in: emails } }
+      })
+    ])
+  }
+}
+
+export class TagTest {
+  /**
+   * Get 100 tags for test
+   *
+   * @returns {string[]} - Tags
+   */
+  private static getTags(): string[] {
+    return Array.from({ length: 100 }, (_, i) => `Tag Test ${i + 1}`)
+  }
+
+  /**
+   * Create tag data for test
+   *
+   * @returns {Promise<void>}
+   */
+  static async createTagTest(): Promise<void> {
+    const roleAdmin = await AuthTest.upsertRole('ADMIN')
+    const userRoleAdmin = await AuthTest.upsertUser(
+      'user_role_admin_test@example.com',
+      'User Role Admin Test',
+      'user_role_admin_test',
+      roleAdmin.id
+    )
+    const now = new Date()
+
+    await prisma.$transaction(
+      this.getTags().map((name, i) =>
+        prisma.tag.create({
+          data: {
+            name,
+            slug: name.toLowerCase().replace(/\s+/g, '-'),
+            created_by: userRoleAdmin.id,
+            updated_by: userRoleAdmin.id,
+            created_at: new Date(now.getTime() + i * 1000),
+            updated_at: new Date(now.getTime() + i * 1000)
+          }
+        })
+      )
+    )
+  }
+
+  /**
+   * Clean up tag data to avoid constraint error
+   *
+   * @returns {Promise<void>}
+   */
+  static async cleanUpDataTagAndAssociatedTagData(): Promise<void> {
+    const tags = this.getTags()
+
+    await prisma.$transaction([
+      prisma.mealTag.deleteMany({
+        where: { tag: { name: { in: tags } } }
+      }),
+      prisma.drinkTag.deleteMany({
+        where: { tag: { name: { in: tags } } }
+      }),
+      prisma.tag.deleteMany({
+        where: { name: { in: tags } }
+      })
+    ])
+    await AuthTest.cleanUpDataAuthAndAssociatedAuthData()
+  }
+
+  /**
+   * Clean up created or updated tag data to avoid constraint error
+   *
+   * @param {string | string[]} tags - Tag name or array of tag names
+   * @returns {Promise<void>}
+   */
+  static async cleanUpDataTagCreatedOrUpdated(
+    tags: string | string[]
+  ): Promise<void> {
+    const tagNames = Array.isArray(tags) ? tags : [tags]
+
+    await prisma.$transaction([
+      prisma.mealTag.deleteMany({
+        where: { tag: { name: { in: tagNames } } }
+      }),
+      prisma.drinkTag.deleteMany({
+        where: { tag: { name: { in: tagNames } } }
+      }),
+      prisma.tag.deleteMany({
+        where: { name: { in: tagNames } }
       })
     ])
   }
