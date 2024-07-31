@@ -10,7 +10,7 @@ describe('Auth API Test', () => {
   })
 
   afterEach(async () => {
-    await AuthTest.cleanUpDataUserAuthAndAssociatedAssociatedUserAuthData()
+    await AuthTest.cleanUpDataUserAuthAndAssociatedUserAuthData()
   })
 
   const apiKey = 'general_api_key_test'
