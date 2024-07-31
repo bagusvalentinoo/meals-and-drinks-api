@@ -15,23 +15,18 @@ export const checkUserRole =
       const user = await prisma.user.findUnique({
         where: { id: req.user_id },
         include: {
-          roles: {
-            include: {
-              role: { select: { name: true } }
-            }
-          }
+          roles: { include: { role: { select: { name: true } } } }
         }
       })
 
-      const errorMessage =
-        'Oops, you are not authorized to access this resource'
+      const errorMessage = 'Oops, you are not allowed to access this resource'
 
-      if (!user) return next(new FormattedResponseError(401, errorMessage))
+      if (!user) return next(new FormattedResponseError(403, errorMessage))
 
       const roles = user.roles.map((role) => role.role.name)
       const hasRole = roles.some((r) => r === role)
 
-      if (!hasRole) return next(new FormattedResponseError(401, errorMessage))
+      if (!hasRole) return next(new FormattedResponseError(403, errorMessage))
 
       next()
     } catch (error) {
