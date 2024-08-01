@@ -7,9 +7,9 @@ export class AuthTest {
    * Upsert role
    *
    * @param {string} name - Role name
-   * @returns {Promise<{ id: string }>} - Role id
+   * @returns {Promise<string>} - Valid Role id
    */
-  static async upsertRole(name: string): Promise<{ id: string }> {
+  static async upsertRole(name: string): Promise<string> {
     const [role] = await prisma.$transaction([
       prisma.role.upsert({
         where: { name },
@@ -18,7 +18,8 @@ export class AuthTest {
         select: { id: true }
       })
     ])
-    return role
+
+    return role.id
   }
 
   /**
@@ -27,15 +28,16 @@ export class AuthTest {
    * @param {string} email - User email
    * @param {string} name - User name
    * @param {string} password - User password
-   * @param {string} roleId - Role id
-   * @returns {Promise<{ id: string }>} - User id
+   * @param {string[] | string} roleId - Role id or array of role id
+   * @returns {Promise<string>} - Valid User id
    */
   static async upsertUser(
     email: string,
     name: string,
     password: string,
-    roleId: string
-  ): Promise<{ id: string }> {
+    roleId: string[] | string
+  ): Promise<string> {
+    const roleIds = Array.isArray(roleId) ? roleId : [roleId]
     const [user] = await prisma.$transaction([
       prisma.user.upsert({
         where: { email },
@@ -45,16 +47,14 @@ export class AuthTest {
           email,
           password: await bcrypt.hash(password, 10),
           roles: {
-            create: {
-              role: { connect: { id: roleId } }
-            }
+            create: roleIds.map((id) => ({ role_id: id }))
           }
         },
         select: { id: true }
       })
     ])
 
-    return user
+    return user.id
   }
 
   /**
@@ -63,12 +63,12 @@ export class AuthTest {
    * @returns {Promise<void>}
    */
   static async createUserRoleAdminTest(): Promise<void> {
-    const roleAdmin = await this.upsertRole('ADMIN')
+    const roleAdminId = await this.upsertRole('ADMIN')
     await this.upsertUser(
       'user_role_admin_test@example.com',
       'User Role Admin Test',
       'user_role_admin_test',
-      roleAdmin.id
+      roleAdminId
     )
   }
 
@@ -78,35 +78,35 @@ export class AuthTest {
    * @returns {Promise<void>}
    */
   static async createUserRoleUserTest(): Promise<void> {
-    const roleUser = await this.upsertRole('USER')
+    const roleUserId = await this.upsertRole('USER')
     await this.upsertUser(
       'user_role_user_test@example.com',
       'User Role User Test',
       'user_role_user_test',
-      roleUser.id
+      roleUserId
     )
   }
 
   /**
    * Create general API key for test
    *
-   * @returns {Promise<string>}
+   * @returns {Promise<void>}
    */
-  static async createGeneralApiKey(): Promise<string> {
-    const roleAdmin = await this.upsertRole('ADMIN')
-    const userRoleAdmin = await this.upsertUser(
+  static async createGeneralApiKey(): Promise<void> {
+    const roleAdminId = await AuthTest.upsertRole('ADMIN')
+    const userRoleAdminId = await AuthTest.upsertUser(
       'user_role_admin_test@example.com',
       'User Role Admin Test',
       'user_role_admin_test',
-      roleAdmin.id
+      roleAdminId
     )
 
-    const [apiKey] = await prisma.$transaction([
+    await prisma.$transaction([
       prisma.apiKey.upsert({
         where: { key: 'general_api_key_test' },
         update: {},
         create: {
-          user_id: userRoleAdmin.id,
+          user_id: userRoleAdminId,
           name: 'General API Key Test',
           slug: 'general-api-key-test',
           key: 'general_api_key_test',
@@ -115,8 +115,6 @@ export class AuthTest {
         select: { key: true }
       })
     ])
-
-    return apiKey.key
   }
 
   /**
@@ -208,25 +206,27 @@ export class TagTest {
    * @returns {Promise<void>}
    */
   static async createTagTest(): Promise<void> {
-    const roleAdmin = await AuthTest.upsertRole('ADMIN')
-    const userRoleAdmin = await AuthTest.upsertUser(
+    const roleAdminId = await AuthTest.upsertRole('ADMIN')
+    const userRoleAdminId = await AuthTest.upsertUser(
       'user_role_admin_test@example.com',
       'User Role Admin Test',
       'user_role_admin_test',
-      roleAdmin.id
+      roleAdminId
     )
-    const now = new Date()
 
+    const now = new Date()
+    const tags = this.getTags()
     await prisma.$transaction(
-      this.getTags().map((name, i) =>
+      tags.map((name, i) =>
         prisma.tag.create({
           data: {
+            id: String(i + 1),
             name,
             slug: name.toLowerCase().replace(/\s+/g, '-'),
-            created_by: userRoleAdmin.id,
-            updated_by: userRoleAdmin.id,
-            created_at: new Date(now.getTime() + i * 1000),
-            updated_at: new Date(now.getTime() + i * 1000)
+            created_by: userRoleAdminId,
+            updated_by: userRoleAdminId,
+            created_at: new Date(now.getTime() + i),
+            updated_at: new Date(now.getTime() + i)
           }
         })
       )
@@ -252,7 +252,7 @@ export class TagTest {
         where: { name: { in: tags } }
       })
     ])
-    await AuthTest.cleanUpDataAuthAndAssociatedAuthData()
+    await AuthTest.cleanUpDataUserAuthAndAssociatedUserAuthData()
   }
 
   /**
