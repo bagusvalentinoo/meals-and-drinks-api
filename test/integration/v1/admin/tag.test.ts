@@ -34,15 +34,15 @@ describe('Admin Tag API Test', () => {
     accessToken: string,
     page?: number,
     size?: number,
-    order_by?: string,
-    order_dir?: string,
+    orderBy?: string,
+    orderDir?: string,
     search?: string
   ) => {
     return await supertest(web)
       .get('/api/v1/admin/tags')
       .set('x-api-key', apiKey)
       .set('Authorization', `Bearer ${accessToken}`)
-      .query({ page, size, order_by, order_dir, search })
+      .query({ page, size, order_by: orderBy, order_dir: orderDir, search })
   }
 
   const createTags = async (
@@ -596,19 +596,12 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        'Tag Test 101'
-      )
-      const tagId = tagCreatedResponse.body.data.tags[0].id
-      const response = await getTag(validApiKey, accessToken, tagId)
+      const response = await getTag(validApiKey, accessToken, '100')
 
       console.log(response.body)
       expect(response.status).toBe(200)
       expect(response.body.success).toBe(true)
       expect(response.body.data.tag).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
 
     it('should not be able to get single tag with unauthorized API key', async () => {
@@ -616,19 +609,12 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        'Tag Test 101'
-      )
-      const tagId = tagCreatedResponse.body.data.tags[0].id
-      const response = await getTag('', accessToken, tagId)
+      const response = await getTag('', accessToken, '100')
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
 
     it('should not be able to get single tag with invalid API key', async () => {
@@ -636,105 +622,54 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        'Tag Test 101'
-      )
-      const tagId = tagCreatedResponse.body.data.tags[0].id
-      const response = await getTag('invalid_api_key', accessToken, tagId)
+      const response = await getTag('invalid_api_key', accessToken, '100')
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
 
     it('should not be able to get single tag with unauthorized access token', async () => {
-      const accessToken = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        'Tag Test 101'
-      )
-      const tagId = tagCreatedResponse.body.data.tags[0].id
-      const response = await getTag(validApiKey, '', tagId)
+      const response = await getTag(validApiKey, '', '100')
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
 
     it('should not be able to get single tag with invalid access token', async () => {
       const anonymousToken = AuthTest.createAnonymousToken()
-      const accessToken = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        'Tag Test 101'
-      )
-      const tagId = tagCreatedResponse.body.data.tags[0].id
-      const response = await getTag(validApiKey, anonymousToken, tagId)
+      const response = await getTag(validApiKey, anonymousToken, '100')
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
 
     it('should not be able to get single tag with expired access token', async () => {
       const accessTokenExpired = AuthTest.createAccessTokenExpired()
-      const accessToken = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        'Tag Test 101'
-      )
-      const tagId = tagCreatedResponse.body.data.tags[0].id
-      const response = await getTag(validApiKey, accessTokenExpired, tagId)
+      const response = await getTag(validApiKey, accessTokenExpired, '100')
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
 
     it('should not be able to get single tag with authorized as user role', async () => {
-      const accessTokenUserRoleAdmin = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
       const accessTokeUserRoleUser = await signIn(
         userRoleUserTestEmail,
         userRoleUserTestPassword
       )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessTokenUserRoleAdmin,
-        'Tag Test 101'
-      )
-      const tagId = tagCreatedResponse.body.data.tags[0].id
-      const response = await getTag(validApiKey, accessTokeUserRoleUser, tagId)
+      const response = await getTag(validApiKey, accessTokeUserRoleUser, '100')
 
       console.log(response.body)
       expect(response.status).toBe(403)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
 
     it('should not be able to get single tag with not found params tag ID', async () => {
@@ -761,18 +696,8 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        'Tag Test 101'
-      )
-      const tagName = 'Tag Test 101 Updated'
-      const response = await updateTag(
-        validApiKey,
-        accessToken,
-        tagCreatedResponse.body.data.tags[0].id,
-        tagName
-      )
+      const tagName = 'Tag Test 100 Updated'
+      const response = await updateTag(validApiKey, accessToken, '100', tagName)
 
       console.log(response.body)
       expect(response.status).toBe(200)
@@ -786,24 +711,17 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        'Tag Test 101'
-      )
-      const tagName = 'Tag Test 101 Updated'
       const response = await updateTag(
         '',
         accessToken,
-        tagCreatedResponse.body.data.tags[0].id,
-        tagName
+        '100',
+        'Tag Test 100 Updated'
       )
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
 
     it('should not be able to update tag with invalid API Key', async () => {
@@ -811,130 +729,79 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        'Tag Test 101'
-      )
-      const tagName = 'Tag Test 101 Updated'
       const response = await updateTag(
         'invalid_api_key',
         accessToken,
-        tagCreatedResponse.body.data.tags[0].id,
-        tagName
+        '100',
+        'Tag Test 100 Updated'
       )
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
 
     it('should not be able to update tag with unauthorized access token', async () => {
-      const accessToken = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        'Tag Test 101'
-      )
-      const tagName = 'Tag Test 101 Updated'
       const response = await updateTag(
         validApiKey,
         '',
-        tagCreatedResponse.body.data.tags[0].id,
-        tagName
+        '100',
+        'Tag Test 100 Updated'
       )
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
 
     it('should not be able to update tag with invalid access token', async () => {
       const anonymousToken = AuthTest.createAnonymousToken()
-      const accessToken = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        'Tag Test 101'
-      )
-      const tagName = 'Tag Test 101 Updated'
       const response = await updateTag(
         validApiKey,
         anonymousToken,
-        tagCreatedResponse.body.data.tags[0].id,
-        tagName
+        '100',
+        'Tag Test 100 Updated'
       )
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
 
     it('should not be able to update tag with expired access token', async () => {
       const accessTokenExpired = AuthTest.createAccessTokenExpired()
-      const accessToken = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        'Tag Test 101'
-      )
-      const tagName = 'Tag Test 101 Updated'
       const response = await updateTag(
         validApiKey,
         accessTokenExpired,
-        tagCreatedResponse.body.data.tags[0].id,
-        tagName
+        '100',
+        'Tag Test 100 Updated'
       )
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
 
     it('should not be able to update tag with authorized as user role', async () => {
-      const accessTokenUserRoleAdmin = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
       const accessTokeUserRoleUser = await signIn(
         userRoleUserTestEmail,
         userRoleUserTestPassword
       )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessTokenUserRoleAdmin,
-        'Tag Test 101'
-      )
-      const tagName = 'Tag Test 101 Updated'
       const response = await updateTag(
         validApiKey,
         accessTokeUserRoleUser,
-        tagCreatedResponse.body.data.tags[0].id,
-        tagName
+        '100',
+        'Tag Test 100 Updated'
       )
 
       console.log(response.body)
       expect(response.status).toBe(403)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
 
     it('should not be able to update tag with not found params tag ID', async () => {
@@ -946,7 +813,7 @@ describe('Admin Tag API Test', () => {
         validApiKey,
         accessToken,
         'not_found_tag_id',
-        'Tag Test 101 Updated'
+        'Tag Test 100 Updated'
       )
 
       console.log(response.body)
@@ -960,23 +827,12 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        'Tag Test 101'
-      )
-      const response = await updateTag(
-        validApiKey,
-        accessToken,
-        tagCreatedResponse.body.data.tags[0].id,
-        ''
-      )
+      const response = await updateTag(validApiKey, accessToken, '100', '')
 
       console.log(response.body)
       expect(response.status).toBe(422)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
 
     it('should not be able to update tag with existing tag name', async () => {
@@ -984,15 +840,10 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        'Tag Test 101'
-      )
       const response = await updateTag(
         validApiKey,
         accessToken,
-        tagCreatedResponse.body.data.tags[0].id,
+        '100',
         'Tag Test 1'
       )
 
@@ -1000,7 +851,6 @@ describe('Admin Tag API Test', () => {
       expect(response.status).toBe(400)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated('Tag Test 101')
     })
   })
 
@@ -1010,19 +860,11 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagName = 'Tag Test 101'
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        tagName
-      )
-      const tagId = tagCreatedResponse.body.data.tags[0].id
-      const response = await deleteSingeTag(validApiKey, accessToken, tagId)
+      const response = await deleteSingeTag(validApiKey, accessToken, '100')
 
       console.log(response.body)
       expect(response.status).toBe(200)
       expect(response.body.success).toBe(true)
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagName)
     })
 
     it('should not be able to delete single tag with unauthorized API key', async () => {
@@ -1030,20 +872,12 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagName = 'Tag Test 101'
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        tagName
-      )
-      const tagId = tagCreatedResponse.body.data.tags[0].id
-      const response = await deleteSingeTag('', accessToken, tagId)
+      const response = await deleteSingeTag('', accessToken, '100')
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagName)
     })
 
     it('should not be able to delete single tag with invalid API key', async () => {
@@ -1051,122 +885,66 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagName = 'Tag Test 101'
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        tagName
-      )
-      const tagId = tagCreatedResponse.body.data.tags[0].id
       const response = await deleteSingeTag(
         'invalid_api_key',
         accessToken,
-        tagId
+        '100'
       )
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagName)
     })
 
     it('should not be able to delete single tag with unauthorized access token', async () => {
-      const accessToken = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
-      const tagName = 'Tag Test 101'
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        tagName
-      )
-      const tagId = tagCreatedResponse.body.data.tags[0].id
-      const response = await deleteSingeTag(validApiKey, '', tagId)
+      const response = await deleteSingeTag(validApiKey, '', '100')
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagName)
     })
 
     it('should not be able to delete single tag with invalid access token', async () => {
       const anonymousToken = AuthTest.createAnonymousToken()
-      const accessToken = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
-      const tagName = 'Tag Test 101'
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        tagName
-      )
-      const tagId = tagCreatedResponse.body.data.tags[0].id
-      const response = await deleteSingeTag(validApiKey, anonymousToken, tagId)
+      const response = await deleteSingeTag(validApiKey, anonymousToken, '100')
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagName)
     })
 
     it('should not be able to delete single tag with expired access token', async () => {
       const accessTokenExpired = AuthTest.createAccessTokenExpired()
-      const accessToken = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
-      const tagName = 'Tag Test 101'
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        tagName
-      )
-      const tagId = tagCreatedResponse.body.data.tags[0].id
       const response = await deleteSingeTag(
         validApiKey,
         accessTokenExpired,
-        tagId
+        '100'
       )
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagName)
     })
 
     it('should not be able to delete single tag with authorized as user role', async () => {
-      const accessTokenUserRoleAdmin = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
       const accessTokeUserRoleUser = await signIn(
         userRoleUserTestEmail,
         userRoleUserTestPassword
       )
-      const tagName = 'Tag Test 101'
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessTokenUserRoleAdmin,
-        tagName
-      )
-      const tagId = tagCreatedResponse.body.data.tags[0].id
       const response = await deleteSingeTag(
         validApiKey,
         accessTokeUserRoleUser,
-        tagId
+        '100'
       )
 
       console.log(response.body)
       expect(response.status).toBe(403)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagName)
     })
 
     it('should not be able to delete single tag with not found params tag ID', async () => {
@@ -1193,26 +971,13 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagNames = [
-        'Tag Test 101',
-        'Tag Test 102',
-        'Tag Test 103',
-        'Tag Test 104',
-        'Tag Test 105'
-      ]
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        tagNames
-      )
-      const tagIds = tagCreatedResponse.body.data.tags.map((tag: any) => tag.id)
+      const tagIds = ['100', '99', '98', '97', '96']
       const response = await deleteBatchTags(validApiKey, accessToken, tagIds)
 
       console.log(response.body)
       expect(response.status).toBe(200)
       expect(response.body.success).toBe(true)
       expect(response.body.message).toContain('5')
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagNames)
     })
 
     it('should be able to delete batch tags even one of tag ids not found', async () => {
@@ -1220,18 +985,7 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagNames = [
-        'Tag Test 101',
-        'Tag Test 102',
-        'Tag Test 103',
-        'Tag Test 104'
-      ]
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        tagNames
-      )
-      const tagIds = tagCreatedResponse.body.data.tags.map((tag: any) => tag.id)
+      const tagIds = ['100', '99', '98', '97']
       tagIds.push('not_found_tag_id')
       const response = await deleteBatchTags(validApiKey, accessToken, tagIds)
 
@@ -1239,7 +993,6 @@ describe('Admin Tag API Test', () => {
       expect(response.status).toBe(200)
       expect(response.body.success).toBe(true)
       expect(response.body.message).toContain('4')
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagNames)
     })
 
     it('should not be able to delete batch tags with unauthorized API key', async () => {
@@ -1247,25 +1000,13 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagNames = [
-        'Tag Test 101',
-        'Tag Test 102',
-        'Tag Test 103',
-        'Tag Test 104'
-      ]
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        tagNames
-      )
-      const tagIds = tagCreatedResponse.body.data.tags.map((tag: any) => tag.id)
+      const tagIds = ['100', '99', '98', '97', '96']
       const response = await deleteBatchTags('', accessToken, tagIds)
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagNames)
     })
 
     it('should not be able to delete batch tags with invalid API key', async () => {
@@ -1273,18 +1014,7 @@ describe('Admin Tag API Test', () => {
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
-      const tagNames = [
-        'Tag Test 101',
-        'Tag Test 102',
-        'Tag Test 103',
-        'Tag Test 104'
-      ]
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        tagNames
-      )
-      const tagIds = tagCreatedResponse.body.data.tags.map((tag: any) => tag.id)
+      const tagIds = ['100', '99', '98', '97', '96']
       const response = await deleteBatchTags(
         'invalid_api_key',
         accessToken,
@@ -1295,53 +1025,21 @@ describe('Admin Tag API Test', () => {
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagNames)
     })
 
     it('should not be able to delete batch tags with unauthorized access token', async () => {
-      const accessToken = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
-      const tagNames = [
-        'Tag Test 101',
-        'Tag Test 102',
-        'Tag Test 103',
-        'Tag Test 104'
-      ]
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        tagNames
-      )
-      const tagIds = tagCreatedResponse.body.data.tags.map((tag: any) => tag.id)
+      const tagIds = ['100', '99', '98', '97', '96']
       const response = await deleteBatchTags(validApiKey, '', tagIds)
 
       console.log(response.body)
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagNames)
     })
 
     it('should not be able to delete batch tags with invalid access token', async () => {
       const anonymousToken = AuthTest.createAnonymousToken()
-      const accessToken = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
-      const tagNames = [
-        'Tag Test 101',
-        'Tag Test 102',
-        'Tag Test 103',
-        'Tag Test 104'
-      ]
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        tagNames
-      )
-      const tagIds = tagCreatedResponse.body.data.tags.map((tag: any) => tag.id)
+      const tagIds = ['100', '99', '98', '97', '96']
       const response = await deleteBatchTags(
         validApiKey,
         anonymousToken,
@@ -1352,27 +1050,11 @@ describe('Admin Tag API Test', () => {
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagNames)
     })
 
     it('should not be able to delete batch tags with expired access token', async () => {
       const accessTokenExpired = AuthTest.createAccessTokenExpired()
-      const accessToken = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
-      const tagNames = [
-        'Tag Test 101',
-        'Tag Test 102',
-        'Tag Test 103',
-        'Tag Test 104'
-      ]
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessToken,
-        tagNames
-      )
-      const tagIds = tagCreatedResponse.body.data.tags.map((tag: any) => tag.id)
+      const tagIds = ['100', '99', '98', '97', '96']
       const response = await deleteBatchTags(
         validApiKey,
         accessTokenExpired,
@@ -1383,30 +1065,14 @@ describe('Admin Tag API Test', () => {
       expect(response.status).toBe(401)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagNames)
     })
 
     it('should not be able to delete batch tags with authorized as user role', async () => {
-      const accessTokenUserRoleAdmin = await signIn(
-        userRoleAdminTestEmail,
-        userRoleAdminTestPassword
-      )
       const accessTokeUserRoleUser = await signIn(
         userRoleUserTestEmail,
         userRoleUserTestPassword
       )
-      const tagNames = [
-        'Tag Test 101',
-        'Tag Test 102',
-        'Tag Test 103',
-        'Tag Test 104'
-      ]
-      const tagCreatedResponse = await createTags(
-        validApiKey,
-        accessTokenUserRoleAdmin,
-        tagNames
-      )
-      const tagIds = tagCreatedResponse.body.data.tags.map((tag: any) => tag.id)
+      const tagIds = ['100', '99', '98', '97', '96']
       const response = await deleteBatchTags(
         validApiKey,
         accessTokeUserRoleUser,
@@ -1417,7 +1083,6 @@ describe('Admin Tag API Test', () => {
       expect(response.status).toBe(403)
       expect(response.body.success).toBe(false)
       expect(response.body.errors).toBeDefined()
-      await TagTest.cleanUpDataTagCreatedOrUpdated(tagNames)
     })
 
     it('should not be able to delete tags with empty or empty string tag ids', async () => {
