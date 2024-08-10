@@ -202,7 +202,7 @@ export class TagService {
    * @param {string} id - Tag ID
    * @returns {Promise<string>} - Tag ID
    */
-  static async findTagById(id: string): Promise<string> {
+  private static async findTagById(id: string): Promise<string> {
     const validId = Validation.validate(TagValidation.FIND, id)
 
     const tag = await prisma.tag.findUnique({
@@ -220,9 +220,11 @@ export class TagService {
    *
    * @param {string} id - Valid tag ID
    */
-  static async getTag(id: string) {
+  static async getTag(id: string): Promise<TagResponse> {
+    const validId = await this.findTagById(id)
+
     const tag = await prisma.tag.findUnique({
-      where: { id },
+      where: { id: validId },
       include: {
         creator: {
           select: { id: true, name: true, photo_profile_url: true }
@@ -251,12 +253,13 @@ export class TagService {
     req: UpdateTagRequest
   ): Promise<UpdateTagResponse> {
     const { name } = Validation.validate(TagValidation.UPDATE, req)
-    const slug = await this.getTagSlugFromName(name, 'update')
+    const validId = await this.findTagById(tagId)
 
     const now = new Date()
+    const slug = await this.getTagSlugFromName(name, 'update')
     const [tag] = await prisma.$transaction([
       prisma.tag.update({
-        where: { id: tagId },
+        where: { id: validId },
         data: {
           name,
           slug,
@@ -293,10 +296,12 @@ export class TagService {
    * @returns {Promise<void>}
    */
   static async deleteSingleTag(id: string): Promise<void> {
+    const validId = await this.findTagById(id)
+
     await prisma.$transaction([
-      prisma.mealTag.deleteMany({ where: { tag_id: id } }),
-      prisma.drinkTag.deleteMany({ where: { tag_id: id } }),
-      prisma.tag.delete({ where: { id } })
+      prisma.mealTag.deleteMany({ where: { tag_id: validId } }),
+      prisma.drinkTag.deleteMany({ where: { tag_id: validId } }),
+      prisma.tag.delete({ where: { id: validId } })
     ])
   }
 

@@ -76,8 +76,7 @@ export class TagController {
    */
   static async show(req: UserRequest, res: Response, next: NextFunction) {
     try {
-      const tagId = await TagService.findTagById(req.params.id as string)
-      const tag = await TagService.getTag(tagId)
+      const tag = await TagService.getTag(req.params.id as string)
 
       return responseSuccess(
         res,
@@ -103,8 +102,11 @@ export class TagController {
   static async update(req: UserRequest, res: Response, next: NextFunction) {
     try {
       const request: UpdateTagRequest = req.body as UpdateTagRequest
-      const tagId = await TagService.findTagById(req.params.id as string)
-      const tag = await TagService.updateTag(tagId, req.user_id!, request)
+      const tag = await TagService.updateTag(
+        req.params.id as string,
+        req.user_id!,
+        request
+      )
 
       return responseSuccess(
         res,
@@ -133,8 +135,7 @@ export class TagController {
     next: NextFunction
   ) {
     try {
-      const tagId = await TagService.findTagById(req.params.id as string)
-      await TagService.deleteSingleTag(tagId)
+      await TagService.deleteSingleTag(req.params.id as string)
 
       return responseSuccess(res, 200, 'Hooray, successfully delete tag')
     } catch (error) {

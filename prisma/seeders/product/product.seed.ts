@@ -25,4 +25,20 @@ export const addProductsForStartingSeeder = async (): Promise<void> => {
       })
     )
   )
+
+  await prisma.$transaction(
+    Array.from({ length: 100 }, (_, i) =>
+      prisma.category.create({
+        data: {
+          name: `Category ${i + 1}`,
+          slug: `category-${i + 1}`,
+          created_by: userRoleAdminId,
+          updated_by: userRoleAdminId,
+          created_at: new Date(now.getTime() + i),
+          updated_at: new Date(now.getTime() + i)
+        },
+        select: { id: true }
+      })
+    )
+  )
 }

@@ -44,26 +44,23 @@ export const errorMiddleware = (
       `Oops, model '${modelName}' with attribute '${target}' you filled already exists`
     )
   } else if (error instanceof MulterError) {
-    if (error.code === 'LIMIT_UNEXPECTED_FILE') {
-      return responseError(res, 400, 'Oops, you can only upload 1 file')
-    } else if (error.code === 'LIMIT_FILE_SIZE') {
-      return responseError(
-        res,
-        400,
-        'Oops, file size is too large. Max file size is 2MB'
-      )
-    } else {
-      return responseError(
-        res,
-        500,
-        'Oops, Internal Server Error. Please try again later'
-      )
+    switch (error.code) {
+      case 'LIMIT_UNEXPECTED_FILE':
+        return responseError(res, 400, 'Oops, you can only upload 1 file')
+      case 'LIMIT_FILE_SIZE':
+        return responseError(res, 400, 'Oops, file size is too large')
+      case 'LIMIT_FIELD_COUNT':
+        return responseError(res, 400, 'Oops, too many fields')
+      case 'LIMIT_FIELD_KEY':
+        return responseError(res, 400, 'Oops, field name is too long')
+      case 'LIMIT_FIELD_VALUE':
+        return responseError(res, 400, 'Oops, field value is too long')
+      case 'LIMIT_FILE_COUNT':
+        return responseError(res, 400, 'Oops, too many files')
+      case 'LIMIT_PART_COUNT':
+        return responseError(res, 400, 'Oops, too many parts')
     }
   } else {
-    return responseError(
-      res,
-      500,
-      'Oops, Internal Server Error. Please try again later'
-    )
+    return responseError(res, 500, error)
   }
 }
