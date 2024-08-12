@@ -13,7 +13,7 @@ describe('Auth API Test', () => {
     await AuthTest.cleanUpDataUserAuthAndAssociatedUserAuthData()
   })
 
-  const apiKey = 'general_api_key_test'
+  const validApiKey = 'general_api_key_test'
   const userRoleAdminTestEmail = 'user_role_admin_test@example.com'
   const userRoleAdminTestPassword = 'user_role_admin_test'
   const userRoleUserTestEmail = 'user_role_user_test@example.com'
@@ -72,7 +72,7 @@ describe('Auth API Test', () => {
   describe('POST /api/v1/auth/sign-in', () => {
     it('should be able to sign in with user role Admin', async () => {
       const response = await signIn(
-        apiKey,
+        validApiKey,
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
@@ -92,7 +92,7 @@ describe('Auth API Test', () => {
 
     it('should be able to sign in with user role User', async () => {
       const response = await signIn(
-        apiKey,
+        validApiKey,
         userRoleUserTestEmail,
         userRoleUserTestPassword
       )
@@ -138,7 +138,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to sign in with incorrect email or password', async () => {
       const response = await signIn(
-        apiKey,
+        validApiKey,
         userRoleAdminTestEmail,
         'wrong_password'
       )
@@ -151,7 +151,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to sign in with invalid email', async () => {
       const response = await signIn(
-        apiKey,
+        validApiKey,
         'testinvalidemail.com',
         userRoleAdminTestPassword
       )
@@ -163,7 +163,7 @@ describe('Auth API Test', () => {
     })
 
     it('should not be able to sign in with empty or empty string email or password', async () => {
-      const response = await signIn(apiKey, '', '')
+      const response = await signIn(validApiKey, '', '')
 
       console.debug(response.body)
       expect(response.status).toBe(422)
@@ -175,7 +175,7 @@ describe('Auth API Test', () => {
   describe('POST /api/v1/auth/sign-up', () => {
     it('should be able to sign up new user', async () => {
       const response = await signUp(
-        apiKey,
+        validApiKey,
         'User Role User Test 2',
         'user_role_user_test_2@example.com',
         'user_role_user_test_2',
@@ -224,7 +224,7 @@ describe('Auth API Test', () => {
     })
 
     it('should not be able to sign up with empty or empty string name, email, password, or password confirmation', async () => {
-      const response = await signUp(apiKey, '', '', '', '')
+      const response = await signUp(validApiKey, '', '', '', '')
 
       console.debug(response.body)
       expect(response.status).toBe(422)
@@ -234,7 +234,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to sign up with existing email', async () => {
       const response = await signUp(
-        apiKey,
+        validApiKey,
         'User Role User Test',
         'user_role_user_test@example.com',
         'user_role_user_test',
@@ -249,7 +249,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to sign up with invalid email', async () => {
       const response = await signUp(
-        apiKey,
+        validApiKey,
         'User Role User Test 2',
         'testinvalidemail.com',
         'user_role_user_test_2',
@@ -264,7 +264,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to sign up with password or password confirmation less than 8 characters', async () => {
       const response = await signUp(
-        apiKey,
+        validApiKey,
         'User Role User Test 2',
         'user_role_user_test_2@example.com',
         'less8',
@@ -279,7 +279,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to sign up with password and password confirmation not match', async () => {
       const response = await signUp(
-        apiKey,
+        validApiKey,
         'User Role User Test',
         'user_role_user_test@example.com',
         'user_role_user_test',
@@ -296,12 +296,12 @@ describe('Auth API Test', () => {
   describe('POST /api/v1/auth/refresh-token', () => {
     it('should be able to refresh token as user role Admin', async () => {
       const responseSignIn = await signIn(
-        apiKey,
+        validApiKey,
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
       const response = await refreshToken(
-        apiKey,
+        validApiKey,
         responseSignIn.body.data.refresh_token.token
       )
 
@@ -314,12 +314,12 @@ describe('Auth API Test', () => {
 
     it('should be able to refresh token as user role User', async () => {
       const responseSignIn = await signIn(
-        apiKey,
+        validApiKey,
         userRoleUserTestEmail,
         userRoleUserTestPassword
       )
       const response = await refreshToken(
-        apiKey,
+        validApiKey,
         responseSignIn.body.data.refresh_token.token
       )
 
@@ -332,7 +332,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to refresh token with unauthorized API Key', async () => {
       const responseSignIn = await signIn(
-        apiKey,
+        validApiKey,
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
@@ -349,7 +349,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to refresh token with invalid API Key', async () => {
       const responseSignIn = await signIn(
-        apiKey,
+        validApiKey,
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
@@ -365,7 +365,7 @@ describe('Auth API Test', () => {
     })
 
     it('should not be able to refresh token with empty or empty string refresh token', async () => {
-      const response = await refreshToken(apiKey, '')
+      const response = await refreshToken(validApiKey, '')
 
       console.debug(response.body)
       expect(response.status).toBe(422)
@@ -375,7 +375,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to refresh token with invalid refresh token', async () => {
       const anonymousToken = AuthTest.createAnonymousToken()
-      const response = await refreshToken(apiKey, anonymousToken)
+      const response = await refreshToken(validApiKey, anonymousToken)
 
       console.debug(response.body)
       expect(response.status).toBe(401)
@@ -385,7 +385,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to refresh token with refresh token expired', async () => {
       const tokenExpired = AuthTest.createRefreshTokenExpired()
-      const response = await refreshToken(apiKey, tokenExpired)
+      const response = await refreshToken(validApiKey, tokenExpired)
 
       console.debug(response.body)
       expect(response.status).toBe(401)
@@ -397,12 +397,12 @@ describe('Auth API Test', () => {
   describe('GET /api/v1/auth/me', () => {
     it('should be able to get user profile as user role Admin', async () => {
       const responseSignIn = await signIn(
-        apiKey,
+        validApiKey,
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
       const response = await me(
-        apiKey,
+        validApiKey,
         responseSignIn.body.data.access_token.token
       )
 
@@ -419,12 +419,12 @@ describe('Auth API Test', () => {
 
     it('should be able to get user profile as user role User', async () => {
       const responseSignIn = await signIn(
-        apiKey,
+        validApiKey,
         userRoleUserTestEmail,
         userRoleUserTestPassword
       )
       const response = await me(
-        apiKey,
+        validApiKey,
         responseSignIn.body.data.access_token.token
       )
 
@@ -441,7 +441,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to get user profile with unauthorized API Key', async () => {
       const responseSignIn = await signIn(
-        apiKey,
+        validApiKey,
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
@@ -455,7 +455,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to get user profile with invalid API Key', async () => {
       const responseSignIn = await signIn(
-        apiKey,
+        validApiKey,
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
@@ -471,7 +471,7 @@ describe('Auth API Test', () => {
     })
 
     it('should not be able to get user profile with unauthorized access token', async () => {
-      const response = await me(apiKey, '')
+      const response = await me(validApiKey, '')
 
       console.debug(response.body)
       expect(response.status).toBe(401)
@@ -481,7 +481,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to get user profile with invalid access token', async () => {
       const anonymousToken = AuthTest.createAnonymousToken()
-      const response = await me(apiKey, anonymousToken)
+      const response = await me(validApiKey, anonymousToken)
 
       console.debug(response.body)
       expect(response.status).toBe(401)
@@ -491,7 +491,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to get user profile with expired access token', async () => {
       const tokenExpired = AuthTest.createAccessTokenExpired()
-      const response = await me(apiKey, tokenExpired)
+      const response = await me(validApiKey, tokenExpired)
 
       console.debug(response.body)
       expect(response.status).toBe(401)
@@ -503,14 +503,14 @@ describe('Auth API Test', () => {
   describe('POST /api/v1/auth/sign-out', () => {
     it('should be able to log out as user role Admin', async () => {
       const responseSignIn = await signIn(
-        apiKey,
+        validApiKey,
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
       const accessToken = responseSignIn.body.data.access_token.token
       const refreshToken = responseSignIn.body.data.refresh_token.token
       const response = await signOut(
-        apiKey,
+        validApiKey,
         accessToken,
         accessToken,
         refreshToken
@@ -523,14 +523,14 @@ describe('Auth API Test', () => {
 
     it('should be able to log out as user role User', async () => {
       const responseSignIn = await signIn(
-        apiKey,
+        validApiKey,
         userRoleUserTestEmail,
         userRoleUserTestPassword
       )
       const accessToken = responseSignIn.body.data.access_token.token
       const refreshToken = responseSignIn.body.data.refresh_token.token
       const response = await signOut(
-        apiKey,
+        validApiKey,
         accessToken,
         accessToken,
         refreshToken
@@ -543,7 +543,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to log out with no unauthorized API Key', async () => {
       const responseSignIn = await signIn(
-        apiKey,
+        validApiKey,
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
@@ -559,7 +559,7 @@ describe('Auth API Test', () => {
 
     it('should not be able to log out with invalid API Key', async () => {
       const responseSignIn = await signIn(
-        apiKey,
+        validApiKey,
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
@@ -580,13 +580,13 @@ describe('Auth API Test', () => {
 
     it('should not be able to log out with unauthorized access token', async () => {
       const responseSignIn = await signIn(
-        apiKey,
+        validApiKey,
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
       const accessToken = responseSignIn.body.data.access_token.token
       const refreshToken = responseSignIn.body.data.refresh_token.token
-      const response = await signOut(apiKey, '', accessToken, refreshToken)
+      const response = await signOut(validApiKey, '', accessToken, refreshToken)
 
       console.debug(response.body)
       expect(response.status).toBe(401)
@@ -597,7 +597,7 @@ describe('Auth API Test', () => {
     it('should not be able to log out with invalid access token', async () => {
       const anonymousToken = AuthTest.createAnonymousToken()
       const response = await signOut(
-        apiKey,
+        validApiKey,
         anonymousToken,
         anonymousToken,
         anonymousToken
@@ -612,7 +612,7 @@ describe('Auth API Test', () => {
     it('should not be able to log out with expired access token', async () => {
       const tokenExpired = AuthTest.createAccessTokenExpired()
       const response = await signOut(
-        apiKey,
+        validApiKey,
         tokenExpired,
         tokenExpired,
         tokenExpired
@@ -626,12 +626,12 @@ describe('Auth API Test', () => {
 
     it('should not be able to log out with empty or empty string access token or refresh token', async () => {
       const responseSignIn = await signIn(
-        apiKey,
+        validApiKey,
         userRoleAdminTestEmail,
         userRoleAdminTestPassword
       )
       const accessToken = responseSignIn.body.data.access_token.token
-      const response = await signOut(apiKey, accessToken, accessToken, '')
+      const response = await signOut(validApiKey, accessToken, accessToken, '')
 
       console.debug(response.body)
       expect(response.status).toBe(422)

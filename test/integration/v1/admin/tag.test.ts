@@ -153,7 +153,7 @@ describe('Admin Tag API Test', () => {
       expect(response.body.data.pagination.size).toBe(20)
     })
 
-    it('should be able to get all tags with pagination with default query order by created_at and updated_at direction desc', async () => {
+    it('should be able to get all tags with pagination with default query order by updated_at direction desc', async () => {
       const accessToken = await signIn(
         userRoleAdminTestEmail,
         userRoleAdminTestPassword

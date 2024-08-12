@@ -19,6 +19,11 @@ export const generateRandomString = (length: number): string => {
   return randomCharacter
 }
 
+/**
+ * Get current date formatted
+ *
+ * @returns {string} - Current date formatted
+ */
 export const getCurrentDateFormatted = (): string => {
   const now = new Date()
   const year = now.getFullYear()
