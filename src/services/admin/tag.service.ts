@@ -13,6 +13,7 @@ import type {
 import { Validation } from '@validations/validation'
 import { TagValidation } from '@validations/admin/tag.validation'
 import { PageValidation } from '@validations/other/page.validation'
+import { TagRepository } from '@repositories/product/tag.repository'
 import { paginate } from '@utils/http/response.util'
 import { FormattedResponseError } from '@utils/error/formatted_response_error.util'
 
@@ -53,23 +54,6 @@ export class TagService {
       response.updater = tag.updater
 
     return response
-  }
-
-  /**
-   * Get valid slug from tag name
-   *
-   * @param {string} name - Tag name
-   * @param {'create' | 'update'} purpose - Purpose of getting tag slug
-   * @returns {Promise<string>} - Valid tag slug
-   */
-  private static async getTagSlugFromName(
-    name: string,
-    purpose: 'create' | 'update'
-  ): Promise<string> {
-    let slug = name.toLowerCase().replace(/\s+/g, '-')
-    const count = await prisma.tag.count({ where: { slug } })
-
-    return count > 0 && purpose === 'create' ? `${slug}-${count}` : slug
   }
 
   /**
@@ -160,7 +144,7 @@ export class TagService {
     const tags = await prisma.$transaction(async (tx) => {
       return await Promise.all(
         tagNames.map(async (name, i) => {
-          const slug = await this.getTagSlugFromName(name, 'create')
+          const slug = await TagRepository.getTagSlugFromTagName(name, 'create')
           const date = new Date(now.getTime() + i)
           return tx.tag.create({
             data: {
@@ -256,7 +240,7 @@ export class TagService {
     const validId = await this.findTagById(tagId)
 
     const now = new Date()
-    const slug = await this.getTagSlugFromName(name, 'update')
+    const slug = await TagRepository.getTagSlugFromTagName(name, 'update')
     const [tag] = await prisma.$transaction([
       prisma.tag.update({
         where: { id: validId },

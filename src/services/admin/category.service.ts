@@ -13,9 +13,10 @@ import type { FileRequest } from '@type/model/file.type'
 import { Validation } from '@validations/validation'
 import { PageValidation } from '@validations/other/page.validation'
 import { CategoryValidation } from '@validations/admin/category.validation'
-// import { FileValidation } from '@validations/other/file.validation'
+import { CategoryRepository } from '@repositories/product/category.repository'
 import { paginate } from '@utils/http/response.util'
 import { validateFile, deleteFile } from '@utils/file/file.util'
+import { imageAllowMimeTypes } from '@constants/file/file'
 import { FormattedResponseError } from '@utils/error/formatted_response_error.util'
 
 export class CategoryService {
@@ -65,23 +66,6 @@ export class CategoryService {
       response.updater = category.updater
 
     return response
-  }
-
-  /**
-   * Get valid slug from category name
-   *
-   * @param {string} name - Category name
-   * @param {'create' | 'update'} purpose - Purpose of getting category slug
-   * @returns {Promise<string>} - Valid slug
-   */
-  private static async getCategorySlugFromName(
-    name: string,
-    purpose: 'create' | 'update'
-  ): Promise<string> {
-    let slug = name.toLowerCase().replace(/\s+/g, '-')
-    const count = await prisma.category.count({ where: { slug } })
-
-    return count > 0 && purpose === 'create' ? `${slug}-${count}` : slug
   }
 
   /**
@@ -180,10 +164,13 @@ export class CategoryService {
         "Oops, category photo can't be empty"
       )
 
-    await validateFile(path, ['image/png', 'image/jpg', 'image/jpeg'])
+    await validateFile(path, imageAllowMimeTypes)
 
     const now = new Date()
-    const slug = await this.getCategorySlugFromName(name, 'create')
+    const slug = await CategoryRepository.getCategorySlugFromCategoryName(
+      name,
+      'create'
+    )
     const [category] = await prisma.$transaction([
       prisma.category.create({
         data: {
@@ -284,7 +271,7 @@ export class CategoryService {
     const { name } = Validation.validate(CategoryValidation.CREATE_UPDATE, req)
     const { path, url } = file
 
-    if (path) await validateFile(path, ['image/png', 'image/jpg', 'image/jpeg'])
+    if (path) await validateFile(path, imageAllowMimeTypes)
 
     const category = await prisma.category.findUnique({
       where: { id: validCategoryId },
@@ -294,7 +281,10 @@ export class CategoryService {
     if (path && category!.photo_path) deleteFile(category!.photo_path)
 
     const now = new Date()
-    const slug = await this.getCategorySlugFromName(name, 'update')
+    const slug = await CategoryRepository.getCategorySlugFromCategoryName(
+      name,
+      'update'
+    )
     const [updatedCategory] = await prisma.$transaction([
       prisma.category.update({
         where: { id: validCategoryId },

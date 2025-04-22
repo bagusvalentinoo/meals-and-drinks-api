@@ -41,6 +41,10 @@ export type CreateTagResponse = Omit<
   'meals_count' | 'drinks_count' | 'created_at' | 'updated_at'
 >
 
+export type CreateTagPayload = {
+  user_id: string
+} & CreateTagRequest
+
 export type UpdateTagRequest = {
   name: string
 }

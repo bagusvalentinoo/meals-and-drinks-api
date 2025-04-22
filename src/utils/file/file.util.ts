@@ -19,13 +19,18 @@ export const deleteFile = (filePath: string): void => {
  *
  * @param {string} filePath - File path
  * @param {string[]} allowMimeTypes - Allowed MIME types
+ * @param {string} [originalFilename] - Original filename (optional)
  * @returns {Promise<void>}
  */
 export const validateFile = async (
   filePath: string,
-  allowMimeTypes: string[]
+  allowMimeTypes: string[],
+  originalFilename?: string
 ): Promise<void> => {
-  const result = await validateMIMEType(filePath, { allowMimeTypes })
+  const result = await validateMIMEType(filePath, {
+    originalFilename,
+    allowMimeTypes
+  })
 
   if (!result.ok)
     throw new FormattedResponseError(
