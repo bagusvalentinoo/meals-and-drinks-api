@@ -7,7 +7,7 @@ export class PageValidation {
    *
    * @returns {ZodType<PaginationRequest>} - ZodType object
    */
-  static readonly PAGINATION: ZodType<PaginationRequest> = z.object({
+  static readonly PAGINATION: ZodType<PaginationRequest> = z.object({ 
     page: z
       .number({
         message: 'Oops, page must be a number',

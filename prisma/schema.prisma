@@ -142,6 +142,7 @@ model Category {
 enum MealDrinkStatus {
   AVAILABLE
   OUT_OF_STOCK
+  HIDDEN
 }
 
 model Meal {
@@ -149,7 +150,7 @@ model Meal {
   name        String          @db.Text
   slug        String          @unique @db.Text
   description String          @db.Text
-  price       Float
+  price       Decimal         @db.Money
   stock       Int             @default(1)
   status      MealDrinkStatus @default(AVAILABLE)
   rating      Float           @default(0)
@@ -174,7 +175,7 @@ model Drink {
   name        String          @db.Text
   slug        String          @unique @db.Text
   description String          @db.Text
-  price       Float
+  price       Decimal         @db.Money
   stock       Int             @default(1)
   status      MealDrinkStatus @default(AVAILABLE)
   rating      Float           @default(0)

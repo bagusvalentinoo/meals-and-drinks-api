@@ -11,6 +11,7 @@
       "@src/*": ["./src/*"],
       "@test/*": ["./test/*"],
       "@app/*": ["./src/app/*"],
+      "@constants/*": ["./src/constants/*"],
       "@controllers/*": ["./src/controllers/api/*"],
       "@middlewares/*": ["./src/middlewares/*"],
       "@repositories/*": ["./src/repositories/*"],
